@@ -350,15 +350,25 @@ def update_dnsmasq_config(
     if dhcp_section is None:
         dhcp_section = ET.SubElement(dnsmasq, "dhcp")
     
-    # Set default dhcp settings if not present
+    # Settings that should always be set to ensure DHCP works correctly
+    # These are critical for DHCP functionality and override any existing values
+    dhcp_required = {
+        "authoritative": "1",      # Required for DHCP to respond to new clients
+        "default_fw_rules": "1",   # Required for DHCP traffic to be allowed
+    }
+    for key, value in dhcp_required.items():
+        elem = dhcp_section.find(key)
+        if elem is None:
+            elem = ET.SubElement(dhcp_section, key)
+        elem.text = value
+    
+    # Set default dhcp settings if not present (preserves existing values)
     dhcp_defaults = {
         "no_interface": "",
         "fqdn": "1",
         "domain": "",
         "local": "1",
         "lease_max": "",
-        "authoritative": "1",
-        "default_fw_rules": "1",
         "reply_delay": "",
         "enable_ra": "0",
         "nosync": "0",
